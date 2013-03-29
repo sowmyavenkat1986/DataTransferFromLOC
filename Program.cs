@@ -14,58 +14,243 @@ namespace ConsoleApplication1
 {
     class Program
     {
-        public static string outputFilePath = "C:\\Users\\sowmya\\Desktop\\testoutput.txt";
-        public static string batchurl = "http://chroniclingamerica.loc.gov/batches.json";
+        public static string outputFilePath = "C:\\Users\\sowmya\\Desktop\\LOCdata\\BatchOutput";
+        public static string basebatchurl = "http://chroniclingamerica.loc.gov/batches.json";
         public static System.IO.StreamWriter file;
-        public static int my_count = 1;
-        public static Storage dbInst;
-        public static Collection rootCollection;
-        //public static int maxtestCount = 1; // This is just to reduce the number of pages parsed for test purposes.
-       
+        public static string batchurl = basebatchurl;
+        public static string output1 = "";
+        public static string output2 = "";
+        public static string output3 = "";
+        public static string output4 = "";
+        public static Decimal currBatch = 0;
+
+        /**
+         * Gets the input required from the user - batch numbers and output file path
+         */
         static void Main(string[] args)
         {
-            Console.Write("Enter the batch number");
-           // InitializeDbContext();
-            Decimal batchnum = Decimal.Parse(Console.ReadLine());
-            if (batchnum != 1)
+            List<Decimal> batchnum = new List<decimal>();
+            Console.Write("Enter the absolute path of the folder in which you want to store the results - \n");
+            Console.Write("Format - C:\\Users\\sowmya\\Desktop\\LOCdata - \n(Stores the data in LOCdata folder, The empty LOCdata folder already exists) :\n");
+            outputFilePath = Console.ReadLine();
+            Console.Write("Enter the batch numbers to be run separated by commas - Format - 1,2,3,4 \n");
+            String batchn = Console.ReadLine();
+            String[] batcharr = batchn.Split(',');
+            for (int i = 0; i < batcharr.Length; i++)
             {
-                batchurl = batchurl.Remove(batchurl.LastIndexOf(".json")) + "/" + batchnum + ".json";
+                batchnum.Add(Decimal.Parse(batcharr[i]));
             }
-            WriteToFlatJson();
-            dbInst.SaveChanges();
+
+            foreach (Decimal d in batchnum)
+            {
+                Console.WriteLine("Processing Batch " + d);
+                currBatch = d;
+                if (d != 1)
+                {   //setting the url to be read for this batch
+                    batchurl = basebatchurl.Remove(batchurl.LastIndexOf(".json")) + "/" + d + ".json";
+                }
+                WriteToJson();
+            }
         }
 
-        private static void InitializeDbContext()
+        public static void WriteToJson()
         {
-            dbInst = new Storage();
-            //rootCollection = new Collection();
-            //rootCollection.Id = Guid.Empty;
-            //rootCollection.Title = "Beta Content";
-            //dbInst.Collections.Add(rootCollection);
-            //dbInst.SuperCollections.Remove(dbInst.SuperCollections.Find(Guid.Empty));
-            //dbInst.Collections.Remove(dbInst.Collections.Find(Guid.Empty));
-            //dbInst.Timelines.Remove(dbInst.Timelines.Find(Guid.Empty));
-    
+            WebClient myWebClient = new WebClient();
+            try
+            {
+                output1 = outputFilePath + "\\Batch" + currBatch;
 
-            dbInst.Database.Connection.ConnectionString = "Server=tcp:u0l7hb80xg.database.windows.net,1433;Database=[sowmya_loc_test];User ID=cz-wds-svenkatdb@u0l7hb80xg;Password=Yucky!@#;Trusted_Connection=False;Encrypt=True;Connection Timeout=30;";
-            //dbInst.Database.Connection.ConnectionString = "Data Source=tcp:u0l7hb80xg.database.windows.net,1433;User Id=cz-wds-svenkatdb@u0l7hb80xg;Password=Yucky!@#";
-
-
-
+                Stream data = myWebClient.OpenRead(batchurl);
+                StreamReader reader = new StreamReader(data);
+                string s = reader.ReadToEnd();
+                JObject jobj = JObject.Parse(s);
+                RootObject ro = new RootObject();
+                if ((String)jobj["next"] != null)
+                {
+                    ro.next = (String)jobj["next"];
+                    ro.local_next = outputFilePath + "\\Batch" + (currBatch + 1) + ".json";
+                }
+                if ((String)jobj["previous"] != null)
+                {
+                    ro.previous = (String)jobj["previous"];
+                    ro.local_previous = outputFilePath + "\\Batch" + (currBatch - 1) + ".json";
+                }
+                JArray parseArray = (JArray)jobj["batches"];
+                ro.batches = ParseJBatch(parseArray); //parsing all the information in a batch
+                String output = JsonConvert.SerializeObject(ro, Formatting.Indented);
+                file = new System.IO.StreamWriter(outputFilePath + "\\Batch" + currBatch + ".json");
+                file.WriteLine(output);
+                file.Close();
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e);
+            }
+            file.Close();
         }
 
 
         /**
-         * Taken from Data Migration project
+         * Parses the data within a batch and writes it into a file within the batch folder
          */
-         private static Decimal? convertToDecimalYear(int? day, int? month, Decimal? year, string timeUnit)
+        private static List<Batch> ParseJBatch(JArray parseArray)
+        {
+            List<Batch> ret_list = new List<Batch>();
+            WebClient wc = new WebClient();
+            if (parseArray != null && parseArray.Count > 0)
+            {
+                foreach (JObject obj in parseArray)
+                {
+                    try
+                    {
+                        Batch b = new Batch();
+                        Awardee a = new Awardee();
+                        JObject temp = (JObject)obj["awardee"];
+                        a.name = (String)temp["name"];
+                        a.url = (String)temp["url"];
+                        b.awardee = a;
+                        b.ingested = (String)obj["ingested"];
+                        JArray temp2 = (JArray)obj["lccns"];
+                        b.lccns = temp2.Select(jv => (string)jv).ToList();
+                        b.name = (String)obj["name"];
+                        b.page_count = (int)obj["page_count"];
+                        b.url = (String)obj["url"];
+                        output2 = output1 + "." + (b.name);
+                        b.local_url = output2 + ".json";
+
+                        Stream data = wc.OpenRead((String)obj["url"]);
+                        StreamReader reader = new StreamReader(data);
+                        string s = reader.ReadToEnd();
+                        JObject jobj = JObject.Parse(s);
+                        JArray issuesArray = (JArray)jobj["issues"];
+                        b.issues = ParseJIssues(issuesArray);
+
+                        //writing to the awardee file inside the batch file
+                        file = new System.IO.StreamWriter(output2 + ".json");
+                        String output = JsonConvert.SerializeObject(b, Formatting.Indented);
+                        file.WriteLine(output);
+                        file.Close();
+                        ret_list.Add(b);
+                    }
+                    catch(Exception e)
+                    {
+                        continue;
+                    }     
+                }
+            }
+            return ret_list;
+        }
+
+        /**
+         * Parses all the issues by an awardee
+         */
+        private static List<Issue> ParseJIssues(JArray issuesArray)
+        {
+            List<Issue> ret_list = new List<Issue>();
+            WebClient wc = new WebClient();
+            if (issuesArray != null && issuesArray.Count > 0)
+            {
+                foreach (JObject obj in issuesArray)
+                {
+                    try
+                    {
+                        Stream data = wc.OpenRead((String)obj["url"]);
+                        StreamReader reader = new StreamReader(data);
+                        string s = reader.ReadToEnd();
+                        JObject jobj = JObject.Parse(s);
+                        JArray pagesArray = (JArray)jobj["pages"];
+                        Issue i = new Issue();
+                        Batch b = new Batch();
+                        b.url = (String)(((JObject)jobj["batch"])["url"]);
+                        b.name = (String)(((JObject)jobj["batch"])["name"]);
+                        b.local_url = output2 + ".json";
+                        i.batch = b;
+                        i.date_issued = (String)obj["date_issued"];
+                        i.volume = (String)jobj["volume"];
+                        i.edition = (int)jobj["edition"];
+                        i.number = (String)jobj["number"];
+                        Title t = new Title();
+                        JObject temp = (JObject)obj["title"];
+                        t.name = (String)temp["name"];
+                        t.url = (String)temp["url"];
+                        i.title = t;
+                        i.url = (String)obj["url"];
+                        output3 = output2 + "." + t.name.Remove(t.name.Length - 1) + "-" + i.date_issued;
+                        i.local_url = output3 + ".json";
+                        i.pages = ParseJPages(pagesArray);
+                        //writing to the Issue file
+                        file = new System.IO.StreamWriter(output3 + ".json");
+                        String output = JsonConvert.SerializeObject(i, Formatting.Indented);
+                        file.WriteLine(output);
+                        file.Close();
+                        ret_list.Add(i);
+                    }
+                    catch (Exception e)
+                    {
+                        continue;
+                    }
+                }
+            }
+            return ret_list;
+        }
+
+        private static List<Page> ParseJPages(JArray pagesArray)
+        {
+            List<Page> ret_list = new List<Page>();
+            WebClient wc = new WebClient();
+            if (pagesArray != null && pagesArray.Count > 0)
+            {
+                foreach (JObject obj in pagesArray)
+                {
+                    Stream data;
+                    try
+                    {
+                        data = wc.OpenRead((String)obj["url"]);
+                    }
+                    catch (Exception e)
+                    {
+                        continue;
+                    }
+                    StreamReader reader = new StreamReader(data);
+                    string s = reader.ReadToEnd();
+                    JObject jobj = JObject.Parse(s);
+                    Page p = new Page();
+                    p.url = (String)obj["url"];
+                    Issue i = new Issue();
+                    i.url = (String)(((JObject)jobj["issue"])["url"]);
+                    i.date_issued = (String)(((JObject)jobj["issue"])["date_issued"]);
+                    i.local_url = output3 + ".json";
+                    p.issue = i;
+                    p.jp2 = (String)jobj["jp2"];
+                    p.ocr = (String)jobj["ocr"];
+                    p.pdf = (String)jobj["pdf"];
+                    p.sequence = (int)jobj["sequence"];
+                    p.text = (String)jobj["text"];
+                    p.title = i.title;
+                    //writing the page file
+                    output4 = output3 + ".Page" + p.sequence;
+                    p.local_url = output4 + ".json";
+                    file = new System.IO.StreamWriter(output4 + ".json");
+                    String output = JsonConvert.SerializeObject(p, Formatting.Indented);
+                    file.WriteLine(output);
+                    file.Close();
+                    ret_list.Add(p);
+                }
+            }
+            return ret_list;
+        }
+
+        /**
+ * Taken from Data Migration project
+ */
+        private static Decimal? convertToDecimalYear(int? day, int? month, Decimal? year, string timeUnit)
         {
             Decimal? decimalyear = null;
             if (year.HasValue)
             {
-                decimalyear = (Decimal)year; 
+                decimalyear = (Decimal)year;
             }
-            else 
+            else
             {
                 return null; //if the value of the year var is null, return null
             }
@@ -123,14 +308,14 @@ namespace ConsoleApplication1
             return decimalyear;
         }
 
-       /**
-         * Taken from Data Migration project
-         */
+        /**
+          * Taken from Data Migration project
+          */
         private static Decimal convertToDecimalYear(DateTime dateTime)
         {
             Decimal year = dateTime.Year;
             Decimal secondsInThisYear = DateTime.IsLeapYear(dateTime.Year) ? 366 * 24 * 60 * 60 : 365 * 24 * 60 * 60;
-            Decimal secondsElapsedSinceYearStart = 
+            Decimal secondsElapsedSinceYearStart =
                 (dateTime.DayOfYear - 1) * 24 * 60 * 60 + dateTime.Hour * 60 * 60 + dateTime.Minute * 60 + dateTime.Second;
 
             Decimal fractionalYear = secondsElapsedSinceYearStart / secondsInThisYear;
@@ -138,173 +323,68 @@ namespace ConsoleApplication1
             return year + fractionalYear;
         }
 
-        
-        private static void ParseJIssues(JArray issuesArray)
-        {
-            //int index = 0;
-            WebClient wc = new WebClient();
-            if (issuesArray != null && issuesArray.Count > 0)
-            {
-                foreach (JObject obj in issuesArray)
-                {
-                   // if (index < maxtestCount) // for test purposes
-                    {
-                        //index++;
-                        JObject temp = (JObject)obj["title"];
-                        String title = (string)temp["name"] + "," + (String)obj["date_issued"];
-                        string pagesurl = (string)obj["url"];
-                        Stream data;
-                        try
-                        {
-                            data = wc.OpenRead(pagesurl);
-                        }
-                        catch (Exception e)
-                        {
-                            continue;
-                        }
-                        StreamReader reader = new StreamReader(data);
-                        string s = reader.ReadToEnd();
-                        JObject jobj = JObject.Parse(s);
-                        JArray pagesArray = (JArray)jobj["pages"];
-
-                        for (int i = 0; i < pagesArray.Count; i++)
-                        {
-                            //Timeline j = new Timeline();
-                            FlatJsonObject j = new FlatJsonObject();
-                            j.Id = Guid.NewGuid();
-                           // j.Threshold = "";
-                           // j.Regime = "";
-                           // j.Sequence = null;
-                           // j.UniqueID = my_count++;
-                            j.Title = title + "," + pagesArray[i]["sequence"];
-                            j.FromTimeUnit = "ce"; //to be changed for a different source
-                            String dateString = (string)obj["date_issued"];
-                            Decimal year = Decimal.Parse(dateString.Substring(0, 4));
-                            j.FromMonth = int.Parse(dateString.Substring(5, 2));
-                            j.FromDay = int.Parse(dateString.Substring(8, 2));
-                            j.FromYear = convertToDecimalYear(j.FromDay, j.FromMonth, year, j.FromTimeUnit);
-                           // j.ToTimeUnit = j.FromTimeUnit;
-                            j.ToDay = j.FromDay;
-                            j.ToMonth = j.FromMonth;
-                            j.ToYear = j.FromYear;
-                            j.count = my_count++;
-                           // j.Height = 80; //should this be 80??
-                            j.URLofData = pagesurl.Remove(pagesurl.LastIndexOf(".json")) + "/seq-" + i + ".pdf";
-                           // j.Exhibits = new System.Collections.ObjectModel.Collection<Exhibit>();
-                           // j.Exhibits.Add(createExhibit(j, URLofData));
-                           // j.Collection = rootCollection;
-                            //dbInst.Timelines.Add(j);
-                            //other forms available
-                            String output = JsonConvert.SerializeObject(j, Formatting.Indented);
-                            file.WriteLine(output);
-                        }
-                    }
-                }
-
-            }
-        }
-
-        //used if creating timeline objects instead of flat json objects
-        private static Exhibit createExhibit(Timeline j, String URL)
-        {
-            Exhibit e = new Exhibit();
-            e.ID = Guid.NewGuid();
-            e.Title = "Exhibit -" + j.Title;
-            e.Threshold = "";
-            e.Regime = "";
-            e.TimeUnit = j.FromTimeUnit;
-            e.Day = j.FromDay;
-            e.Month = j.FromMonth;
-            e.Year = j.FromYear;
-            e.UniqueID = my_count++;
-            e.Sequence = null;
-            ContentItem c = new ContentItem();
-            c.ID = Guid.NewGuid();
-            c.Title = "ContentItem -" + j.Title;
-            c.Caption = "PDF - " +j.Title;
-            c.Threshold = "";
-            c.Regime = "";
-            c.TimeUnit = j.FromTimeUnit;
-            c.Year = j.ToYear;
-            c.MediaType = "PDF";
-            c.Uri = URL;
-            c.MediaSource = "Library of Congress";
-            c.Attribution = "Library of Congress";
-            c.UniqueID = my_count++;
-            c.Order = 1;
-            c.HasBibliography = false;
-            // Insert into db here
-            dbInst.ContentItems.Add(c);
-            e.ContentItems = new System.Collections.ObjectModel.Collection<ContentItem>();
-            e.ContentItems.Add(c);
-            dbInst.Exhibits.Add(e);
-            return e;
-        }
-        
-        private static void ParseJBatch(JArray parseArray)
-        {
-            //int index = 0;
-            WebClient wc = new WebClient();
-            if (parseArray != null && parseArray.Count > 0)
-            {
-                
-                foreach (JObject obj in parseArray)
-                {
-                   // if (index < maxtestCount) // for test purposes
-                    {
-                        //index++;
-                        string issuesurl = (string)obj["url"];
-                        Stream data = wc.OpenRead(issuesurl);
-                        StreamReader reader = new StreamReader(data);
-                        string s = reader.ReadToEnd();
-                        JObject jobj = JObject.Parse(s);
-                        JArray issuesArray = (JArray)jobj["issues"];
-                        ParseJIssues(issuesArray);
-                    }
-                }    
-                
-            }
-        }
- 
-        
-        public static void WriteToFlatJson()
-        {
-            WebClient myWebClient = new WebClient();
-            file = new System.IO.StreamWriter(outputFilePath);
-            //String nextBatchLink = "";
-            try
-            {
-                Stream data = myWebClient.OpenRead(batchurl);
-                StreamReader reader = new StreamReader(data);
-                string s = reader.ReadToEnd();
-                JObject jobj = JObject.Parse(s);
-                JArray parseArray = (JArray)jobj["batches"];
-                ParseJBatch(parseArray);
-                //nextBatchLink = (String)jobj["next"];
-            }
-            catch (Exception e)
-            {
-                Console.WriteLine(e);
-            }
-
-
-            file.Close();
-        }
     }
 
-    class FlatJsonObject
+    public class Awardee
     {
-        public Guid Id;
-        public Decimal count;
-        public string Title;
-        public string FromTimeUnit;
-        public int? FromDay;
-        public int? FromMonth;
-        public decimal? FromYear;
-        public int? ToDay;
-        public int? ToMonth;
-        public decimal? ToYear;
-        public string URLofData; //can be a list<string> 
+        public string url { get; set; }
+        public string name { get; set; }
     }
 
+    public class Batch
+    {
+        public string name { get; set; }
+        public string url { get; set; }
+        public string local_url { get; set; }
+        public int page_count { get; set; }
+        public Awardee awardee { get; set; }
+        public List<string> lccns { get; set; }
+        public string ingested { get; set; }
+        public List<Issue> issues { get; set; }
+    }
+
+    public class RootObject
+    {
+        public List<Batch> batches { get; set; }
+        public string next { get; set; }
+        public string local_next { get; set; }
+        public string previous { get; set; }
+        public string local_previous { get; set; }
+    }
+
+    public class Issue
+    {
+        public Title title { get; set; }
+        public string url { get; set; }
+        public string local_url { get; set; }
+        public string date_issued { get; set; }
+        public string number { get; set; }
+        public Batch batch { get; set; }
+        public string volume { get; set; }
+        public int edition { get; set; }
+        public List<Page> pages { get; set; }
+    }
+
+    public class Title
+    {
+        public string url { get; set; }
+        public string name { get; set; }
+    }
+
+    public class Page
+    {
+        public string url { get; set; }
+        public string local_url { get; set; }
+        public string jp2 { get; set; }
+        public int sequence { get; set; }
+        public string text { get; set; }
+        public Title title { get; set; }
+        public string pdf { get; set; }
+        public string ocr { get; set; }
+        public Issue issue { get; set; }
+    }
 }
+
+
+
+  

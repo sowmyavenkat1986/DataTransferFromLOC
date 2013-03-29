@@ -28,3 +28,33 @@ C:\Users\sowmya\Desktop\ChronozoomDocs\ChronoZoom -3-17\ChronoZoom-master\Source
 C:\Users\sowmya\Desktop\ChronozoomDocs\ChronoZoom -3-17\ChronoZoom-master\Source\ConsoleApplication1\bin\Debug\Microsoft.AspNet.SignalR.Core.xml
 C:\Users\sowmya\Desktop\ChronozoomDocs\ChronoZoom -3-17\ChronoZoom-master\Source\ConsoleApplication1\bin\Debug\Microsoft.AspNet.SignalR.Owin.xml
 C:\Users\sowmya\Desktop\ChronozoomDocs\ChronoZoom -3-17\ChronoZoom-master\Source\ConsoleApplication1\bin\Debug\Microsoft.Owin.Host.SystemWeb.xml
+C:\Users\sowmya\Desktop\ChronozoomDocs\ChronoZoom -3-17 - Copy - LOCditto\ChronoZoom-master\Source\ConsoleApplication1\bin\Debug\ConsoleApplication1.exe.config
+C:\Users\sowmya\Desktop\ChronozoomDocs\ChronoZoom -3-17 - Copy - LOCditto\ChronoZoom-master\Source\ConsoleApplication1\obj\Debug\ConsoleApplication1.exe
+C:\Users\sowmya\Desktop\ChronozoomDocs\ChronoZoom -3-17 - Copy - LOCditto\ChronoZoom-master\Source\ConsoleApplication1\obj\Debug\ConsoleApplication1.pdb
+C:\Users\sowmya\Desktop\ChronozoomDocs\ChronoZoom -3-17 - Copy - LOCditto\ChronoZoom-master\Source\ConsoleApplication1\obj\Debug\DataTransferFromLOC.csprojResolveAssemblyReference.cache
+C:\Users\sowmya\Desktop\ChronozoomDocs\ChronoZoom -3-17 - Copy - LOCditto\ChronoZoom-master\Source\ConsoleApplication1\bin\Debug\ResponseDumpThresholds.txt
+C:\Users\sowmya\Desktop\ChronozoomDocs\ChronoZoom -3-17 - Copy - LOCditto\ChronoZoom-master\Source\ConsoleApplication1\bin\Debug\Images\chronozoom_title.png
+C:\Users\sowmya\Desktop\ChronozoomDocs\ChronoZoom -3-17 - Copy - LOCditto\ChronoZoom-master\Source\ConsoleApplication1\bin\Debug\Images\regimes.png
+C:\Users\sowmya\Desktop\ChronozoomDocs\ChronoZoom -3-17 - Copy - LOCditto\ChronoZoom-master\Source\ConsoleApplication1\bin\Debug\testVCTree.htm
+C:\Users\sowmya\Desktop\ChronozoomDocs\ChronoZoom -3-17 - Copy - LOCditto\ChronoZoom-master\Source\ConsoleApplication1\bin\Debug\testVirtualCanvasPrimitives.htm
+C:\Users\sowmya\Desktop\ChronozoomDocs\ChronoZoom -3-17 - Copy - LOCditto\ChronoZoom-master\Source\ConsoleApplication1\bin\Debug\ConsoleApplication1.exe
+C:\Users\sowmya\Desktop\ChronozoomDocs\ChronoZoom -3-17 - Copy - LOCditto\ChronoZoom-master\Source\ConsoleApplication1\bin\Debug\ConsoleApplication1.pdb
+C:\Users\sowmya\Desktop\ChronozoomDocs\ChronoZoom -3-17 - Copy - LOCditto\ChronoZoom-master\Source\ConsoleApplication1\bin\Debug\Chronozoom.Entities.dll
+C:\Users\sowmya\Desktop\ChronozoomDocs\ChronoZoom -3-17 - Copy - LOCditto\ChronoZoom-master\Source\ConsoleApplication1\bin\Debug\EntityFramework.dll
+C:\Users\sowmya\Desktop\ChronozoomDocs\ChronoZoom -3-17 - Copy - LOCditto\ChronoZoom-master\Source\ConsoleApplication1\bin\Debug\Newtonsoft.Json.dll
+C:\Users\sowmya\Desktop\ChronozoomDocs\ChronoZoom -3-17 - Copy - LOCditto\ChronoZoom-master\Source\ConsoleApplication1\bin\Debug\UI.dll
+C:\Users\sowmya\Desktop\ChronozoomDocs\ChronoZoom -3-17 - Copy - LOCditto\ChronoZoom-master\Source\ConsoleApplication1\bin\Debug\Microsoft.AspNet.SignalR.SystemWeb.dll
+C:\Users\sowmya\Desktop\ChronozoomDocs\ChronoZoom -3-17 - Copy - LOCditto\ChronoZoom-master\Source\ConsoleApplication1\bin\Debug\OuterCurve.SignalRTraceListener.dll
+C:\Users\sowmya\Desktop\ChronozoomDocs\ChronoZoom -3-17 - Copy - LOCditto\ChronoZoom-master\Source\ConsoleApplication1\bin\Debug\Microsoft.AspNet.SignalR.Core.dll
+C:\Users\sowmya\Desktop\ChronozoomDocs\ChronoZoom -3-17 - Copy - LOCditto\ChronoZoom-master\Source\ConsoleApplication1\bin\Debug\Microsoft.AspNet.SignalR.Owin.dll
+C:\Users\sowmya\Desktop\ChronozoomDocs\ChronoZoom -3-17 - Copy - LOCditto\ChronoZoom-master\Source\ConsoleApplication1\bin\Debug\Owin.dll
+C:\Users\sowmya\Desktop\ChronozoomDocs\ChronoZoom -3-17 - Copy - LOCditto\ChronoZoom-master\Source\ConsoleApplication1\bin\Debug\Microsoft.Owin.Host.SystemWeb.dll
+C:\Users\sowmya\Desktop\ChronozoomDocs\ChronoZoom -3-17 - Copy - LOCditto\ChronoZoom-master\Source\ConsoleApplication1\bin\Debug\Chronozoom.Entities.pdb
+C:\Users\sowmya\Desktop\ChronozoomDocs\ChronoZoom -3-17 - Copy - LOCditto\ChronoZoom-master\Source\ConsoleApplication1\bin\Debug\UI.pdb
+C:\Users\sowmya\Desktop\ChronozoomDocs\ChronoZoom -3-17 - Copy - LOCditto\ChronoZoom-master\Source\ConsoleApplication1\bin\Debug\EntityFramework.xml
+C:\Users\sowmya\Desktop\ChronozoomDocs\ChronoZoom -3-17 - Copy - LOCditto\ChronoZoom-master\Source\ConsoleApplication1\bin\Debug\Newtonsoft.Json.xml
+C:\Users\sowmya\Desktop\ChronozoomDocs\ChronoZoom -3-17 - Copy - LOCditto\ChronoZoom-master\Source\ConsoleApplication1\bin\Debug\Microsoft.AspNet.SignalR.SystemWeb.xml
+C:\Users\sowmya\Desktop\ChronozoomDocs\ChronoZoom -3-17 - Copy - LOCditto\ChronoZoom-master\Source\ConsoleApplication1\bin\Debug\OuterCurve.SignalRTraceListener.pdb
+C:\Users\sowmya\Desktop\ChronozoomDocs\ChronoZoom -3-17 - Copy - LOCditto\ChronoZoom-master\Source\ConsoleApplication1\bin\Debug\Microsoft.AspNet.SignalR.Core.xml
+C:\Users\sowmya\Desktop\ChronozoomDocs\ChronoZoom -3-17 - Copy - LOCditto\ChronoZoom-master\Source\ConsoleApplication1\bin\Debug\Microsoft.AspNet.SignalR.Owin.xml
+C:\Users\sowmya\Desktop\ChronozoomDocs\ChronoZoom -3-17 - Copy - LOCditto\ChronoZoom-master\Source\ConsoleApplication1\bin\Debug\Microsoft.Owin.Host.SystemWeb.xml
