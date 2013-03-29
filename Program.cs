@@ -19,9 +19,13 @@ namespace ConsoleApplication1
         public static System.IO.StreamWriter file;
         public static string batchurl = basebatchurl;
         public static string output1 = "";
+        public static string reloutput1 = "";
         public static string output2 = "";
+        public static string reloutput2 = "";
         public static string output3 = "";
+        public static string reloutput3 = "";
         public static string output4 = "";
+        public static string reloutput4 = "";
         public static Decimal currBatch = 0;
 
         /**
@@ -59,7 +63,7 @@ namespace ConsoleApplication1
             try
             {
                 output1 = outputFilePath + "\\Batch" + currBatch;
-
+                reloutput1 = "\\Batch" + currBatch;
                 Stream data = myWebClient.OpenRead(batchurl);
                 StreamReader reader = new StreamReader(data);
                 string s = reader.ReadToEnd();
@@ -68,12 +72,12 @@ namespace ConsoleApplication1
                 if ((String)jobj["next"] != null)
                 {
                     ro.next = (String)jobj["next"];
-                    ro.local_next = outputFilePath + "\\Batch" + (currBatch + 1) + ".json";
+                    ro.local_next = "\\Batch" + (currBatch + 1) + ".json";
                 }
                 if ((String)jobj["previous"] != null)
                 {
                     ro.previous = (String)jobj["previous"];
-                    ro.local_previous = outputFilePath + "\\Batch" + (currBatch - 1) + ".json";
+                    ro.local_previous = "\\Batch" + (currBatch - 1) + ".json";
                 }
                 ro.batches = new List<Batch>();
                 JArray parseArray = (JArray)jobj["batches"];
@@ -91,7 +95,7 @@ namespace ConsoleApplication1
                     b.name = (String)bobj["name"];
                     b.page_count = (int)bobj["page_count"];
                     b.url = (String)bobj["url"];
-                    b.local_url = output1 + "." + (b.name) + ".json";
+                    b.local_url = reloutput1 + "." + (b.name) + ".json";
                     ro.batches.Add(b);
                 }
                 String output = JsonConvert.SerializeObject(ro, Formatting.Indented);
@@ -133,7 +137,8 @@ namespace ConsoleApplication1
                         b.page_count = (int)obj["page_count"];
                         b.url = (String)obj["url"];
                         output2 = output1 + "." + (b.name);
-                        b.local_url = output2 + ".json";
+                        reloutput2 = reloutput1 + "." + (b.name);
+                        b.local_url = reloutput2 + ".json";
 
                         Stream data = wc.OpenRead((String)obj["url"]);
                         StreamReader reader = new StreamReader(data);
@@ -152,7 +157,8 @@ namespace ConsoleApplication1
                             i.title = t;
                             i.url = (String)obj["url"];
                             output3 = output2 + "." + t.name.Remove(t.name.Length - 1) + "-" + i.date_issued;
-                            i.local_url = output3 + ".json";
+                            reloutput3 = reloutput2 + "." + t.name.Remove(t.name.Length - 1) + "-" + i.date_issued;
+                            i.local_url = reloutput3 + ".json";
                             b.issues.Add(i);
                         }
                         //writing to the awardee file inside the batch file
@@ -194,7 +200,7 @@ namespace ConsoleApplication1
                         Batch b = new Batch();
                         b.url = (String)(((JObject)jobj["batch"])["url"]);
                         b.name = (String)(((JObject)jobj["batch"])["name"]);
-                        b.local_url = output2 + ".json";
+                        b.local_url = reloutput2 + ".json";
                         i.batch = b;
                         i.date_issued = (String)obj["date_issued"];
                         i.volume = (String)jobj["volume"];
@@ -207,14 +213,15 @@ namespace ConsoleApplication1
                         i.title = t;
                         i.url = (String)obj["url"];
                         output3 = output2 + "." + t.name.Remove(t.name.Length - 1) + "-" + i.date_issued;
-                        i.local_url = output3 + ".json";
+                        reloutput3 = reloutput2 + "." + t.name.Remove(t.name.Length - 1) + "-" + i.date_issued;
+                        i.local_url = reloutput3 + ".json";
                         i.pages = new List<Page>();
                         foreach (JObject pobj in pagesArray) //parsing only necessary fields here to avoid redundancy in data
                         {
                             Page p = new Page();
                             p.sequence = (int)pobj["sequence"];
                             p.url = (String)pobj["url"];
-                            p.local_url = output3 + ".Page" + p.sequence + ".json";
+                            p.local_url = reloutput3 + ".Page" + p.sequence + ".json";
                             i.pages.Add(p);
                         }
 
@@ -250,7 +257,7 @@ namespace ConsoleApplication1
                     i1.url = i.url;
                     i1.local_url = i.local_url;
                     i1.date_issued = i.date_issued;
-                    i1.local_url = output3 + ".json";
+                    i1.local_url = reloutput3 + ".json";
                     p.issue = i1;
                     p.jp2 = partialPath + ".jp2";
                     p.ocr = partialPath + "/ocr.xml";
@@ -260,7 +267,8 @@ namespace ConsoleApplication1
                     p.title = i.title;
                     //writing the page file
                     output4 = output3 + ".Page" + p.sequence;
-                    p.local_url = output4 + ".json";
+                    reloutput4 = reloutput3 + ".Page" + p.sequence;
+                    p.local_url = reloutput4 + ".json";
                     file = new System.IO.StreamWriter(output4 + ".json");
                     String output = JsonConvert.SerializeObject(p, Formatting.Indented);
                     file.WriteLine(output);
