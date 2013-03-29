@@ -75,18 +75,35 @@ namespace ConsoleApplication1
                     ro.previous = (String)jobj["previous"];
                     ro.local_previous = outputFilePath + "\\Batch" + (currBatch - 1) + ".json";
                 }
+                ro.batches = new List<Batch>();
                 JArray parseArray = (JArray)jobj["batches"];
-                ro.batches = ParseJBatch(parseArray); //parsing all the information in a batch
+                foreach (JObject bobj in parseArray) //parsing only necessary fields here to avoid redundancy in data
+                {
+                    Batch b = new Batch();
+                    Awardee a = new Awardee();
+                    JObject temp = (JObject)bobj["awardee"];
+                    a.name = (String)temp["name"];
+                    a.url = (String)temp["url"];
+                    b.awardee = a;
+                    b.ingested = (String)bobj["ingested"];
+                    JArray temp2 = (JArray)bobj["lccns"];
+                    b.lccns = temp2.Select(jv => (string)jv).ToList();
+                    b.name = (String)bobj["name"];
+                    b.page_count = (int)bobj["page_count"];
+                    b.url = (String)bobj["url"];
+                    b.local_url = output1 + "." + (b.name) + ".json";
+                    ro.batches.Add(b);
+                }
                 String output = JsonConvert.SerializeObject(ro, Formatting.Indented);
                 file = new System.IO.StreamWriter(outputFilePath + "\\Batch" + currBatch + ".json");
                 file.WriteLine(output);
                 file.Close();
+                ParseJBatch(parseArray); //parsing all the information in a batch
             }
             catch (Exception e)
             {
                 Console.WriteLine(e);
             }
-            file.Close();
         }
 
 
@@ -123,14 +140,28 @@ namespace ConsoleApplication1
                         string s = reader.ReadToEnd();
                         JObject jobj = JObject.Parse(s);
                         JArray issuesArray = (JArray)jobj["issues"];
-                        b.issues = ParseJIssues(issuesArray);
-
+                        b.issues = new List<Issue>();
+                        foreach (JObject iobj in issuesArray) //parsing only necessary fields here to avoid redundancy in data
+                        {
+                            Issue i = new Issue();
+                            i.date_issued = (String)iobj["date_issued"];
+                            Title t = new Title();
+                            JObject temp3 = (JObject)iobj["title"];
+                            t.name = (String)temp3["name"];
+                            t.url = (String)temp3["url"];
+                            i.title = t;
+                            i.url = (String)obj["url"];
+                            output3 = output2 + "." + t.name.Remove(t.name.Length - 1) + "-" + i.date_issued;
+                            i.local_url = output3 + ".json";
+                            b.issues.Add(i);
+                        }
                         //writing to the awardee file inside the batch file
                         file = new System.IO.StreamWriter(output2 + ".json");
                         String output = JsonConvert.SerializeObject(b, Formatting.Indented);
                         file.WriteLine(output);
                         file.Close();
                         ret_list.Add(b);
+                        ParseJIssues(issuesArray);
                     }
                     catch(Exception e)
                     {
@@ -177,13 +208,23 @@ namespace ConsoleApplication1
                         i.url = (String)obj["url"];
                         output3 = output2 + "." + t.name.Remove(t.name.Length - 1) + "-" + i.date_issued;
                         i.local_url = output3 + ".json";
-                        i.pages = ParseJPages(pagesArray);
+                        i.pages = new List<Page>();
+                        foreach (JObject pobj in pagesArray) //parsing only necessary fields here to avoid redundancy in data
+                        {
+                            Page p = new Page();
+                            p.sequence = (int)pobj["sequence"];
+                            p.url = (String)pobj["url"];
+                            p.local_url = output3 + ".Page" + p.sequence + ".json";
+                            i.pages.Add(p);
+                        }
+
                         //writing to the Issue file
                         file = new System.IO.StreamWriter(output3 + ".json");
                         String output = JsonConvert.SerializeObject(i, Formatting.Indented);
                         file.WriteLine(output);
                         file.Close();
                         ret_list.Add(i);
+                        ParseJPages(pagesArray, i);
                     }
                     catch (Exception e)
                     {
@@ -194,7 +235,7 @@ namespace ConsoleApplication1
             return ret_list;
         }
 
-        private static List<Page> ParseJPages(JArray pagesArray)
+        private static List<Page> ParseJPages(JArray pagesArray, Issue i)
         {
             List<Page> ret_list = new List<Page>();
             WebClient wc = new WebClient();
@@ -202,30 +243,20 @@ namespace ConsoleApplication1
             {
                 foreach (JObject obj in pagesArray)
                 {
-                    Stream data;
-                    try
-                    {
-                        data = wc.OpenRead((String)obj["url"]);
-                    }
-                    catch (Exception e)
-                    {
-                        continue;
-                    }
-                    StreamReader reader = new StreamReader(data);
-                    string s = reader.ReadToEnd();
-                    JObject jobj = JObject.Parse(s);
+                    String partialPath = ((String)obj["url"]).Remove(((String)obj["url"]).IndexOf(".json"));
                     Page p = new Page();
                     p.url = (String)obj["url"];
-                    Issue i = new Issue();
-                    i.url = (String)(((JObject)jobj["issue"])["url"]);
-                    i.date_issued = (String)(((JObject)jobj["issue"])["date_issued"]);
-                    i.local_url = output3 + ".json";
-                    p.issue = i;
-                    p.jp2 = (String)jobj["jp2"];
-                    p.ocr = (String)jobj["ocr"];
-                    p.pdf = (String)jobj["pdf"];
-                    p.sequence = (int)jobj["sequence"];
-                    p.text = (String)jobj["text"];
+                    Issue i1 = new Issue();
+                    i1.url = i.url;
+                    i1.local_url = i.local_url;
+                    i1.date_issued = i.date_issued;
+                    i1.local_url = output3 + ".json";
+                    p.issue = i1;
+                    p.jp2 = partialPath + ".jp2";
+                    p.ocr = partialPath + "/ocr.xml";
+                    p.pdf = partialPath + ".pdf";
+                    p.sequence = (int)obj["sequence"];
+                    p.text = partialPath + "/ocr.txt";
                     p.title = i.title;
                     //writing the page file
                     output4 = output3 + ".Page" + p.sequence;
