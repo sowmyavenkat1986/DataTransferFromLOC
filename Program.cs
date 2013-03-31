@@ -49,7 +49,6 @@ namespace ConsoleApplication1
             {
                 Console.WriteLine("Processing Batch " + d);
                 currBatch = d;
-                batchurl = "http://chroniclingamerica.loc.gov/batches/31.json";
                 if (d != 1)
                 {   //setting the url to be read for this batch
                     batchurl = basebatchurl.Remove(basebatchurl.LastIndexOf(".json")) + "/" + d + ".json";
