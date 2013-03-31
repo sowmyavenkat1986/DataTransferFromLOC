@@ -54,61 +54,63 @@ namespace ConsoleApplication1
                 {   //setting the url to be read for this batch
                     batchurl = basebatchurl.Remove(basebatchurl.LastIndexOf(".json")) + "/" + d + ".json";
                 }
-                WriteToJson();
+                try
+                {
+                    WriteToJson();
+                }
+                catch (Exception e)
+                {
+                    Console.WriteLine(e);
+                    continue;
+
+                }
             }
         }
 
         public static void WriteToJson()
         {
             WebClient myWebClient = new WebClient();
-            try
+            output1 = outputFilePath + "\\Batch" + currBatch;
+            reloutput1 = "\\Batch" + currBatch;
+            Stream data = myWebClient.OpenRead(batchurl);
+            StreamReader reader = new StreamReader(data);
+            string s = reader.ReadToEnd();
+            JObject jobj = JObject.Parse(s);
+            RootObject ro = new RootObject();
+            if ((String)jobj["next"] != null)
             {
-                output1 = outputFilePath + "\\Batch" + currBatch;
-                reloutput1 = "\\Batch" + currBatch;
-                Stream data = myWebClient.OpenRead(batchurl);
-                StreamReader reader = new StreamReader(data);
-                string s = reader.ReadToEnd();
-                JObject jobj = JObject.Parse(s);
-                RootObject ro = new RootObject();
-                if ((String)jobj["next"] != null)
-                {
-                    ro.next = (String)jobj["next"];
-                    ro.local_next = "\\Batch" + (currBatch + 1) + ".json";
-                }
-                if ((String)jobj["previous"] != null)
-                {
-                    ro.previous = (String)jobj["previous"];
-                    ro.local_previous = "\\Batch" + (currBatch - 1) + ".json";
-                }
-                ro.batches = new List<Batch>();
-                JArray parseArray = (JArray)jobj["batches"];
-                foreach (JObject bobj in parseArray) //parsing only necessary fields here to avoid redundancy in data
-                {
-                    Batch b = new Batch();
-                    Awardee a = new Awardee();
-                    JObject temp = (JObject)bobj["awardee"];
-                    a.name = (String)temp["name"];
-                    a.url = (String)temp["url"];
-                    b.awardee = a;
-                    b.ingested = (String)bobj["ingested"];
-                    JArray temp2 = (JArray)bobj["lccns"];
-                    b.lccns = temp2.Select(jv => (string)jv).ToList();
-                    b.name = (String)bobj["name"];
-                    b.page_count = (int)bobj["page_count"];
-                    b.url = (String)bobj["url"];
-                    b.local_url = reloutput1 + "." + (b.name) + ".json";
-                    ro.batches.Add(b);
-                }
-                String output = JsonConvert.SerializeObject(ro, Formatting.Indented);
-                file = new System.IO.StreamWriter(outputFilePath + "\\Batch" + currBatch + ".json");
-                file.WriteLine(output);
-                file.Close();
-                ParseJBatch(parseArray); //parsing all the information in a batch
+                ro.next = (String)jobj["next"];
+                ro.local_next = "\\Batch" + (currBatch + 1) + ".json";
             }
-            catch (Exception e)
+            if ((String)jobj["previous"] != null)
             {
-                Console.WriteLine(e);
+                ro.previous = (String)jobj["previous"];
+                ro.local_previous = "\\Batch" + (currBatch - 1) + ".json";
             }
+            ro.batches = new List<Batch>();
+            JArray parseArray = (JArray)jobj["batches"];
+            foreach (JObject bobj in parseArray) //parsing only necessary fields here to avoid redundancy in data
+            {
+                Batch b = new Batch();
+                Awardee a = new Awardee();
+                JObject temp = (JObject)bobj["awardee"];
+                a.name = (String)temp["name"];
+                a.url = (String)temp["url"];
+                b.awardee = a;
+                b.ingested = (String)bobj["ingested"];
+                JArray temp2 = (JArray)bobj["lccns"];
+                b.lccns = temp2.Select(jv => (string)jv).ToList();
+                b.name = (String)bobj["name"];
+                b.page_count = (int)bobj["page_count"];
+                b.url = (String)bobj["url"];
+                b.local_url = reloutput1 + "." + (b.name) + ".json";
+                ro.batches.Add(b);
+            }
+            String output = JsonConvert.SerializeObject(ro, Formatting.Indented);
+            file = new System.IO.StreamWriter(outputFilePath + "\\Batch" + currBatch + ".json");
+            file.WriteLine(output);
+            file.Close();
+            ParseJBatch(parseArray); //parsing all the information in a batch
         }
 
 
